@@ -22,10 +22,14 @@ const DESTINATION_DIR = core.getInput('destination_dir', {
   required: false
 });
 
-const s3 = new S3({
+
+const configS3 = {
+  region: 'sa-east-1',
   accessKeyId: AWS_KEY_ID,
   secretAccessKey: SECRET_ACCESS_KEY
-});
+}
+core.debug(`s3Object - ${configS3}`);
+const s3 = new S3(configS3);
 const destinationDir = DESTINATION_DIR === '/' ? shortid() : DESTINATION_DIR;
 const paths = klawSync(SOURCE_DIR, {
   nodir: true
@@ -48,13 +52,12 @@ function run() {
     paths.map(p => {
       const fileStream = fs.createReadStream(p.path);
       const bucketPath = path.join(destinationDir, path.relative(sourceDir, p.path));
-      core.info(`destinationDir - ${destinationDir}`);
-      core.info(`sourceDir - ${sourceDir}`);
-      core.info(`p path - ${p.path}`);
-      core.info(`bucketPath - ${bucketPath}`);
+      core.debug(`destinationDir - ${destinationDir}`);
+      core.debug(`sourceDir - ${sourceDir}`);
+      core.debug(`p path - ${p.path}`);
+      core.debug(`bucketPath - ${bucketPath}`);
       const params = {
         Bucket: BUCKET,
-        ACL: 'public-read',
         Body: fileStream,
         Key: bucketPath,
         ContentType: lookup(p.path) || 'text/plain'
